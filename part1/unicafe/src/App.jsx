@@ -2,9 +2,14 @@ import { useState } from 'react'
 
 const StatisticLine = ({ text, value }) => {
   return (
-    <div>
-      {text}: {value}
-    </div>
+    <tr>
+      <td>
+        {text}
+      </td>
+      <td>
+        {value}
+      </td>
+    </tr>
   );
 };
 
@@ -17,14 +22,16 @@ const Statistics = (props) => {
     );
   } else {
     return (
-      <div>
-        <StatisticLine text="good" value={good} />
-        <StatisticLine text="neutral" value={neutral} />
-        <StatisticLine text="bad" value={bad} />
-        <StatisticLine text="all" value={bad+good+neutral} />
-        <StatisticLine text="average" value={((good*1)+(neutral*0)+(bad*-1))/(bad+good+neutral)} />
-        <StatisticLine text="positive" value={`${((good / (good + neutral + bad)) * 100)}%`} />
-      </div>
+      <table>
+        <tbody>
+          <StatisticLine text="good" value={good} />
+          <StatisticLine text="neutral" value={neutral} />
+          <StatisticLine text="bad" value={bad} />
+          <StatisticLine text="all" value={bad+good+neutral} />
+          <StatisticLine text="average" value={((good*1)+(neutral*0)+(bad*-1))/(bad+good+neutral)} />
+          <StatisticLine text="positive" value={`${((good / (good + neutral + bad)) * 100)}%`} />
+        </tbody>
+      </table>
     );
   }
 };
@@ -42,15 +49,15 @@ const App = () => {
 
   return (
     <div>
-      <div>
+      <h1>
         give feedback
-      </div>
+      </h1>
       <button onClick={increaseByOneGood}>Good</button>
       <button onClick={increaseByOneNeutral}>Neutral</button>
       <button onClick={increaseByOneBad}>Bad</button>
-      <div>
+      <h2>
         statistics
-      </div>
+      </h2>
       <Statistics props={[good, neutral, bad]} />
     </div>
   )
