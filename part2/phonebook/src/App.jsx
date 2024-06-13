@@ -26,12 +26,13 @@ const PersonForm = ({ newName, newNumber, handleNameChange, handleNumberChange, 
   );
 };
 
-const Persons = ({personsToShow}) => {
+const Persons = ({ personsToShow, deletePerson }) => {
   return (
     <div>
       {personsToShow.map(person => (
         <p key={person.id}>
           {person.name} {person.number}
+          <button onClick={() => deletePerson(person.id)}>delete</button>
         </p>
       ))}
     </div>
@@ -39,61 +40,72 @@ const Persons = ({personsToShow}) => {
 };
 
 const App = () => {
-  const [persons, setPersons] = useState([])
-  const [newNumber, setNewNumber] = useState('')
-  const [newName, setNewName] = useState('')
-  const [newFilter, setNewFilter] = useState('')
+  const [persons, setPersons] = useState([]);
+  const [newNumber, setNewNumber] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newFilter, setNewFilter] = useState('');
 
   useEffect(() => {
     axios
       .get('http://localhost:3001/persons')
       .then(response => {
-        setPersons(response.data)
-      })
-  }, [])
-
+        setPersons(response.data);
+      });
+  }, []);
 
   const personsToShow = newFilter
-  ? persons.filter(person =>
-    person.name.toLowerCase().includes(newFilter.toLowerCase())
-  )
-  : persons;
+    ? persons.filter(person =>
+        person.name.toLowerCase().includes(newFilter.toLowerCase())
+      )
+    : persons;
 
   const handleFilterChange = (event) => {
-    event.preventDefault()
-    setNewFilter(event.target.value)
-  }
+    setNewFilter(event.target.value);
+  };
 
   const addPerson = (event) => {
-    event.preventDefault()
+    event.preventDefault();
     const person = {
       name: newName,
       number: newNumber,
-      id: persons.length + 1,
-    }
+      id: persons.length > 0 ? Math.max(persons.map(p => p.id)) + 1 : 1,
+    };
 
-    if (persons.map(p => p.name).includes(person.name)) {
-      alert(`${newName} is already added to phonebook`)
+    if (persons.some(p => p.name === person.name)) {
+      alert(`${newName} is already added to phonebook`);
     } else {
       personService
-      .create(person)
-      .then(returnedPerson => {
-        setPersons(persons.concat(returnedPerson));
-        setNewName('');
-        setNewNumber('');
-      })
-  }
+        .create(person)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson));
+          setNewName('');
+          setNewNumber('');
+        });
     }
+  };
+
+  const deletePerson = id => {
+    const person = persons.find(p => p.id === id);
+    if (window.confirm(`Delete ${person.name}?`)) {
+      personService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter(p => p.id !== id));
+        })
+        .catch(error => {
+          alert(`the person was already deleted from server`);
+          setPersons(persons.filter(p => p.id !== id));
+        });
+    }
+  };
 
   const handleNameChange = (event) => {
-    event.preventDefault()
-    setNewName(event.target.value)
-  }
+    setNewName(event.target.value);
+  };
 
   const handleNumberChange = (event) => {
-    event.preventDefault()
-    setNewNumber(event.target.value)
-  }
+    setNewNumber(event.target.value);
+  };
 
   return (
     <div>
@@ -113,9 +125,12 @@ const App = () => {
 
       <h3>Numbers</h3>
 
-      <Persons personsToShow={personsToShow} />
+      <Persons 
+        personsToShow={personsToShow} 
+        deletePerson={deletePerson}
+      />
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
