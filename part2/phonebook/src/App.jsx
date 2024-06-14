@@ -68,11 +68,25 @@ const App = () => {
     const person = {
       name: newName,
       number: newNumber,
-      id: persons.length > 0 ? Math.max(persons.map(p => p.id)) + 1 : 1,
     };
 
     if (persons.some(p => p.name === person.name)) {
-      alert(`${newName} is already added to phonebook`);
+      const existingPerson = persons.find(p => p.name === person.name);
+      const confirmUpdate = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`);
+
+      if (confirmUpdate) {
+        personService
+          .update(existingPerson.id, { ...existingPerson, number: newNumber })
+          .then(returnedPerson => {
+            setPersons(persons.map(p => p.id !== existingPerson.id ? p : returnedPerson));
+            setNewName('');
+            setNewNumber('');
+          })
+          .catch(error => {
+            alert(`Information of ${newName} has already been removed from the server`);
+            setPersons(persons.filter(p => p.id !== existingPerson.id));
+          });
+      }
     } else {
       personService
         .create(person)
@@ -80,6 +94,9 @@ const App = () => {
           setPersons(persons.concat(returnedPerson));
           setNewName('');
           setNewNumber('');
+        })
+        .catch(error => {
+          alert(`Failed to add ${newName} to the phonebook`);
         });
     }
   };
